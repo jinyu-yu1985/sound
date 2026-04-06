@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>声音派对乐园 - 自动换组 | 慢速教学版</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(145deg, #FFE57F 0%, #FFA559 100%);
+            font-family: 'Comic Neue', 'Comic Sans MS', 'Chalkboard SE', 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .floating-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .float-item {
+            position: absolute;
+            font-size: 2rem;
+            animation: floatAround 20s linear infinite;
+            opacity: 0.35;
+        }
+        @keyframes floatAround {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0.2; }
+            100% { transform: translateY(-20vh) rotate(30deg); opacity: 0.5; }
+        }
+
+        .game-container {
+            position: relative;
+            z-index: 2;
+            max-width: 1100px;
+            width: 100%;
+            background: #FFF9E8;
+            border-radius: 80px;
+            box-shadow: 0 25px 40px rgba(0,0,0,0.3), inset 0 2px 8px rgba(255,255,200,0.9);
+            padding: 20px 25px 35px;
+            text-align: center;
+        }
+
+        .rainbow-title {
+            background: linear-gradient(135deg, #FF6B6B, #FFD93D, #6BCB77, #4D96FF, #FF6B6B);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 2.6rem;
+            font-weight: bold;
+            margin: 0 0 5px;
+        }
+
+        .sub {
+            font-size: 1.2rem;
+            background: #FFE5A3;
+            display: inline-block;
+            padding: 6px 20px;
+            border-radius: 60px;
+            color: #C05A1A;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .teach-area {
+            background: #FFE0B5;
+            border-radius: 60px;
+            padding: 12px 20px;
+            margin: 10px 0 15px;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            box-shadow: inset 0 1px 4px rgba(0,0,0,0.05), 0 8px 15px rgba(0,0,0,0.1);
+        }
+        .teach-btn {
+            background: #FF9F4A;
+            border: none;
+            font-size: 1.6rem;
+            padding: 12px 28px;
+            border-radius: 60px;
+            cursor: pointer;
+            box-shadow: 0 7px 0 #B85C1A;
+            transition: 0.07s linear;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: bold;
+            color: white;
+        }
+        .teach-btn:active { transform: translateY(4px); box-shadow: 0 3px 0 #B85C1A; }
+        .teach-emoji { font-size: 2.2rem; }
+
+        .group-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin: 10px 0 10px;
+        }
+        .nav-btn {
+            background: #FFB347;
+            border: none;
+            font-size: 2.2rem;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #C16F1A;
+            transition: 0.07s linear;
+            color: white;
+        }
+        .nav-btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #C16F1A; }
+        .group-name {
+            background: #FFF0B5;
+            padding: 8px 20px;
+            border-radius: 60px;
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #C0392B;
+            min-width: 220px;
+        }
+
+        .wave-area {
+            margin: 8px 0 12px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            height: 55px;
+        }
+        .wave {
+            width: 14px;
+            height: 20px;
+            background: #FFA559;
+            border-radius: 20px;
+        }
+        .wave.active { animation: soundWave 0.4s infinite alternate; }
+        @keyframes soundWave {
+            0% { height: 18px; background: #FFB347; }
+            100% { height: 55px; background: #FF2A00; }
+        }
+
+        .speaker-area { margin: 5px 0 15px; }
+        .speaker-btn {
+            background: #F7C56E;
+            border: none;
+            font-size: 2.8rem;
+            padding: 15px 30px;
+            border-radius: 120px;
+            cursor: pointer;
+            box-shadow: 0 10px 0 #B87B2E;
+            transition: 0.07s linear;
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: bold;
+            color: #5D3A1A;
+        }
+        .speaker-btn:active { transform: translateY(5px); box-shadow: 0 5px 0 #B87B2E; }
+        .speaker-text { font-size: 1.6rem; }
+
+        .star-score {
+            background: #FFE0A3;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 25px;
+            margin: 10px auto 20px;
+            width: fit-content;
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        .stars { letter-spacing: 8px; font-size: 2rem; }
+
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 35px;
+            margin: 20px 0 25px;
+        }
+        .choice-btn {
+            flex: 1;
+            min-width: 250px;
+            background: #6BCB77;
+            border: none;
+            border-radius: 80px;
+            padding: 30px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            box-shadow: 0 15px 0 #2C6E2F;
+            transition: 0.07s linear;
+            position: relative;
+        }
+        .choice-btn.right-btn {
+            background: #FFB347;
+            box-shadow: 0 15px 0 #C16F1A;
+        }
+        .choice-btn:active { transform: translateY(6px); box-shadow: 0 8px 0 #2C6E2F; }
+        .choice-btn.right-btn:active { transform: translateY(6px); box-shadow: 0 8px 0 #C16F1A; }
+        .choice-emoji { font-size: 5.5rem; display: block; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2)); }
+        .choice-word {
+            font-size: 2.3rem;
+            font-weight: bold;
+            background: rgba(255,255,220,0.9);
+            padding: 8px 20px;
+            border-radius: 70px;
+            color: #2c5e2f;
+        }
+
+        /* 动画 */
+        .bounce-animation { animation: bounce 0.28s ease-in-out; }
+        .shake-animation { animation: shake 0.28s ease-in-out; }
+        @keyframes bounce {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.12); background: #F0FFA0; }
+            100% { transform: scale(1); }
+        }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* 跳舞动画 */
+        @keyframes happyDance {
+            0% { transform: scale(1) rotate(0deg) translateY(0); }
+            25% { transform: scale(1.3) rotate(15deg) translateY(-30px); }
+            50% { transform: scale(1.1) rotate(-10deg) translateY(-15px); }
+            75% { transform: scale(1.2) rotate(5deg) translateY(-25px); }
+            100% { transform: scale(1) rotate(0deg) translateY(0); }
+        }
+        .happy-dance {
+            animation: happyDance 0.6s ease-in-out;
+        }
+
+        @keyframes sadShake {
+            0% { transform: translateX(0) rotate(0deg); }
+            25% { transform: translateX(-6px) rotate(-5deg); }
+            75% { transform: translateX(6px) rotate(5deg); }
+            100% { transform: translateX(0) rotate(0deg); }
+        }
+        .sad-shake {
+            animation: sadShake 0.4s ease-in-out;
+        }
+
+        .dance-pop {
+            position: fixed;
+            font-size: 4rem;
+            pointer-events: none;
+            z-index: 1000;
+            animation: floatDance 1s ease-out forwards;
+        }
+        @keyframes floatDance {
+            0% { transform: scale(0.2) translateY(0); opacity: 0; }
+            30% { transform: scale(1.5) translateY(-40px) rotate(20deg); opacity: 1; }
+            70% { transform: scale(1.2) translateY(-100px) rotate(-10deg); }
+            100% { transform: scale(1) translateY(-180px) rotate(0deg); opacity: 0; }
+        }
+
+        .sad-pop {
+            position: fixed;
+            font-size: 3.5rem;
+            pointer-events: none;
+            z-index: 1000;
+            animation: sadFloat 0.8s ease-out forwards;
+        }
+        @keyframes sadFloat {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(100px) scale(0.8); opacity: 0; }
+        }
+
+        .flash-correct {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(100,255,100,0.4) 0%, rgba(255,255,200,0) 80%);
+            pointer-events: none;
+            z-index: 998;
+            animation: flashFade 0.4s ease-out;
+        }
+        @keyframes flashFade {
+            0% { opacity: 0.8; }
+            100% { opacity: 0; }
+        }
+
+        .confetti-effect {
+            position: fixed;
+            pointer-events: none;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 999;
+        }
+        @keyframes fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        .party-dance {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            pointer-events: none;
+            z-index: 1000;
+            animation: partyFade 2s ease-out forwards;
+        }
+        .party-item {
+            font-size: 3rem;
+            display: inline-block;
+            animation: partyBounce 0.3s infinite alternate;
+        }
+        @keyframes partyBounce {
+            0% { transform: translateY(0px) rotate(0deg); }
+            100% { transform: translateY(-25px) rotate(15deg); }
+        }
+        @keyframes partyFade {
+            0% { opacity: 0; transform: scale(0.5); }
+            30% { opacity: 1; transform: scale(1.1); }
+            80% { opacity: 1; }
+            100% { opacity: 0; transform: scale(1); }
+        }
+
+        /* 通关庆祝样式 */
+        .victory-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,107,107,0.95), rgba(255,217,61,0.95), rgba(107,203,119,0.95), rgba(77,150,255,0.95));
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            animation: victoryFadeIn 0.5s ease-out;
+        }
+        @keyframes victoryFadeIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .victory-title {
+            font-size: 4rem;
+            color: white;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            animation: victoryBounce 0.6s ease-in-out infinite alternate;
+        }
+        @keyframes victoryBounce {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+        .victory-stars {
+            font-size: 5rem;
+            margin: 20px 0;
+            animation: starSpin 2s linear infinite;
+        }
+        @keyframes starSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .victory-text {
+            font-size: 2rem;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin: 20px;
+            text-align: center;
+            max-width: 80%;
+        }
+        .victory-btn {
+            background: white;
+            color: #FF6B6B;
+            border: none;
+            font-size: 1.8rem;
+            padding: 20px 40px;
+            border-radius: 60px;
+            cursor: pointer;
+            margin-top: 30px;
+            box-shadow: 0 10px 0 rgba(0,0,0,0.2);
+            transition: 0.07s linear;
+            font-weight: bold;
+        }
+        .victory-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 5px 0 rgba(0,0,0,0.2);
+        }
+        .victory-emoji {
+            position: absolute;
+            font-size: 3rem;
+            animation: victoryFloat 3s ease-in-out infinite;
+        }
+        @keyframes victoryFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(180deg); }
+        }
+
+        .encourage {
+            font-size: 1.3rem;
+            background: #FFF2CC;
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 50px;
+            color: #E67E22;
+            margin-top: 8px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 700px) {
+            .choice-btn { min-width: 200px; padding: 20px 12px; }
+            .choice-emoji { font-size: 4rem; }
+            .choice-word { font-size: 1.8rem; }
+            .teach-btn { font-size: 1.2rem; padding: 8px 18px; }
+            .speaker-btn { padding: 10px 20px; font-size: 2rem; }
+            .victory-title { font-size: 2.5rem; }
+            .victory-text { font-size: 1.5rem; }
+        }
+        button { touch-action: manipulation; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div class="floating-bg" id="floatingBg"></div>
+<div class="game-container">
+    <div class="rainbow-title">🌈 声音派对乐园 🎉</div>
+    <div class="sub">🐣 先点"听听我是谁"交朋友，再慢慢听声音选一选！</div>
+
+    <div class="teach-area">
+        <button class="teach-btn" id="teachLeftBtn">
+            <span class="teach-emoji" id="teachLeftEmoji">🦆</span> 听听我是谁
+        </button>
+        <button class="teach-btn" id="teachRightBtn">
+            <span class="teach-emoji" id="teachRightEmoji">🐴</span> 听听我是谁
+        </button>
+    </div>
+
+    <div class="group-nav">
+        <button class="nav-btn" id="prevGroupBtn">◀</button>
+        <div class="group-name" id="groupNameDisplay">
+            <span id="leftEmojiPreview">🦆</span> 🆚 <span id="rightEmojiPreview">🐴</span>
+        </div>
+        <button class="nav-btn" id="nextGroupBtn">▶</button>
+    </div>
+
+    <div class="wave-area" id="waveArea">
+        <div class="wave"></div><div class="wave"></div><div class="wave"></div>
+        <div class="wave"></div><div class="wave"></div>
+    </div>
+
+    <div class="speaker-area">
+        <button class="speaker-btn" id="speakerBtn">
+            🔊 <span class="speaker-text">再听一次（慢慢说）</span>
+        </button>
+    </div>
+
+    <div class="star-score">
+        <span>⭐️ 连胜：</span>
+        <span class="stars" id="starCountDisplay">☆☆☆</span>
+    </div>
+
+    <div class="options">
+        <button class="choice-btn" id="leftChoiceBtn" data-type="g">
+            <span class="choice-emoji" id="leftEmoji">🦆</span>
+            <span class="choice-word" id="leftWord">嘎</span>
+        </button>
+        <button class="choice-btn right-btn" id="rightChoiceBtn" data-type="d">
+            <span class="choice-emoji" id="rightEmoji">🐴</span>
+            <span class="choice-word" id="rightWord">哒</span>
+        </button>
+    </div>
+
+    <div class="encourage">
+        🤗 点"听听我是谁"，小角色会自我介绍～ 然后听挑战声音，选对啦它们会开心跳舞！
+    </div>
+</div>
+
+<script>
+    // ================= 趣味声音派对（自动换组 + 超慢教学） =================
+    const GROUPS = [
+        { name: "🦆 小鸭 🆚 🐴 小马",
+          g: { emoji: "🦆", word: "嘎", soundPure: "嘎——嘎——嘎——", teachMsg: "我是小鸭子，嘎嘎嘎", 
+               correctMsgs: ["你听对了，是我，嘎嘎嘎！", "答对啦，我是小鸭子，嘎嘎！", "太棒了，听出来我是嘎嘎嘎！", "你真聪明，我是小鸭子嘎嘎！"], 
+               type: "g" },
+          d: { emoji: "🐴", word: "哒", soundPure: "哒——哒——哒——", teachMsg: "我是小马，哒哒哒", 
+               correctMsgs: ["你听对了，是我，哒哒哒！", "答对啦，我是小马，哒哒！", "太棒了，听出来我是哒哒哒！", "你真聪明，我是小马哒哒！"], 
+               type: "d" } },
+        { name: "🍰 蛋糕 🆚 🔪 小刀",
+          g: { emoji: "🍰", word: "糕", soundPure: "糕——糕——糕——", teachMsg: "我是蛋糕，糕糕糕", 
+               correctMsgs: ["你听对了，是我，糕糕糕！", "答对啦，我是蛋糕，糕糕！", "太棒了，听出来我是糕糕糕！", "你真聪明，我是蛋糕糕糕！"], 
+               type: "g" },
+          d: { emoji: "🔪", word: "刀", soundPure: "刀——刀——刀——", teachMsg: "我是小刀，刀刀刀", 
+               correctMsgs: ["你听对了，是我，刀刀刀！", "答对啦，我是小刀，刀刀！", "太棒了，听出来我是刀刀刀！", "你真聪明，我是小刀刀刀！"], 
+               type: "d" } },
+        { name: "🐦 鸽子 🆚 📯 喇叭",
+          g: { emoji: "🐦", word: "咕", soundPure: "咕——咕——咕——", teachMsg: "我是鸽子，咕咕咕", 
+               correctMsgs: ["你听对了，是我，咕咕咕！", "答对啦，我是鸽子，咕咕！", "太棒了，听出来我是咕咕咕！", "你真聪明，我是鸽子咕咕！"], 
+               type: "g" },
+          d: { emoji: "📯", word: "嘟", soundPure: "嘟——嘟——嘟——", teachMsg: "我是喇叭，嘟嘟嘟", 
+               correctMsgs: ["你听对了，是我，嘟嘟嘟！", "答对啦，我是喇叭，嘟嘟！", "太棒了，听出来我是嘟嘟嘟！", "你真聪明，我是喇叭嘟嘟！"], 
+               type: "d" } },
+        { name: "🐓 公鸡 🆚 🚪 敲门",
+          g: { emoji: "🐓", word: "公", soundPure: "公——公——公——", teachMsg: "我是公鸡，公公公", 
+               correctMsgs: ["你听对了，是我，公公公！", "答对啦，我是公鸡，公公！", "太棒了，听出来我是公公公！", "你真聪明，我是公鸡公公！"], 
+               type: "g" },
+          d: { emoji: "🚪", word: "咚", soundPure: "咚——咚——咚——", teachMsg: "我是敲门声，咚咚咚", 
+               correctMsgs: ["你听对了，是我，咚咚咚！", "答对啦，我是敲门声，咚咚！", "太棒了，听出来我是咚咚咚！", "你真聪明，我是敲门声咚咚！"], 
+               type: "d" } }
+    ];
+
+    let currentGroupIndex = 0;
+    let currentTarget = null;
+    let consecutiveCorrect = 0;
+    let waitingForAnswer = true;
+    let isSpeaking = false;
+    let userInteracted = false;
+    let completedGroups = new Set(); // 记录已完成的组
+
+    // DOM
+    const leftBtn = document.getElementById('leftChoiceBtn');
+    const rightBtn = document.getElementById('rightChoiceBtn');
+    const leftEmojiSpan = document.getElementById('leftEmoji');
+    const rightEmojiSpan = document.getElementById('rightEmoji');
+    const leftWordSpan = document.getElementById('leftWord');
+    const rightWordSpan = document.getElementById('rightWord');
+    const leftEmojiPreview = document.getElementById('leftEmojiPreview');
+    const rightEmojiPreview = document.getElementById('rightEmojiPreview');
+    const starCountDisplay = document.getElementById('starCountDisplay');
+    const speakerBtn = document.getElementById('speakerBtn');
+    const prevGroupBtn = document.getElementById('prevGroupBtn');
+    const nextGroupBtn = document.getElementById('nextGroupBtn');
+    const teachLeftBtn = document.getElementById('teachLeftBtn');
+    const teachRightBtn = document.getElementById('teachRightBtn');
+    const teachLeftEmoji = document.getElementById('teachLeftEmoji');
+    const teachRightEmoji = document.getElementById('teachRightEmoji');
+    const waves = document.querySelectorAll('.wave');
+
+    // 背景飘浮物
+    function createFloating() {
+        const bg = document.getElementById('floatingBg');
+        for (let i = 0; i < 30; i++) {
+            const item = document.createElement('div');
+            item.className = 'float-item';
+            item.innerText = ['🎈','🐣','🌟','🍬','🐶','🐱','🦄','🌸','⭐️','🍭'][Math.floor(Math.random()*10)];
+            item.style.left = Math.random() * 100 + '%';
+            item.style.animationDuration = 16 + Math.random() * 18 + 's';
+            item.style.animationDelay = Math.random() * 14 + 's';
+            item.style.fontSize = 1.6 + Math.random() * 2.4 + 'rem';
+            bg.appendChild(item);
+        }
+    }
+    createFloating();
+
+    function startWave() { waves.forEach(w => w.classList.add('active')); }
+    function stopWave() { waves.forEach(w => w.classList.remove('active')); }
+
+    // 教学语速放慢至 0.65
+    function speakTeach(text, onEnd) {
+        if (!window.speechSynthesis) return;
+        if (isSpeaking) window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'zh-CN';
+        utter.rate = 0.65;
+        utter.pitch = 1.05;
+        utter.onstart = () => { isSpeaking = true; startWave(); };
+        utter.onend = () => { isSpeaking = false; stopWave(); if (onEnd) onEnd(); };
+        utter.onerror = () => { isSpeaking = false; stopWave(); if (onEnd) onEnd(); };
+        window.speechSynthesis.speak(utter);
+    }
+
+    // 正确反馈语速正常（0.7），随机选择反馈语
+    function speakFeedback(text, onEnd) {
+        if (!window.speechSynthesis) return;
+        if (isSpeaking) window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'zh-CN';
+        utter.rate = 0.7;
+        utter.pitch = 1.1;
+        utter.onstart = () => { isSpeaking = true; startWave(); };
+        utter.onend = () => { isSpeaking = false; stopWave(); if (onEnd) onEnd(); };
+        utter.onerror = () => { isSpeaking = false; stopWave(); if (onEnd) onEnd(); };
+        window.speechSynthesis.speak(utter);
+    }
+
+    // 极慢速挑战语音 (rate 0.35，比之前更慢)
+    function speakSlow(text, onEnd) {
+        if (!window.speechSynthesis) return;
+        if (isSpeaking) window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'zh-CN';
+        utter.rate = 0.35; // 从0.45降到0.35，更慢更清晰
+        utter.pitch = 1.0;
+        utter.onstart = () => { isSpeaking = true; startWave(); };
+        utter.onend = () => { isSpeaking = false; stopWave(); if (onEnd) onEnd(); };
+        utter.onerror = () => { isSpeaking = false; stopWave(); if (onEnd) onEnd(); };
+        window.speechSynthesis.speak(utter);
+    }
+
+    // 教学：播放介绍 + 角色跳动
+    function playTeach(role, btnElement, btnRect) {
+        speakTeach(role.teachMsg, () => {
+            const emojiSpan = btnElement.querySelector('.teach-emoji');
+            if (emojiSpan) {
+                emojiSpan.classList.add('happy-dance');
+                setTimeout(() => emojiSpan.classList.remove('happy-dance'), 600);
+            }
+        });
+        if (btnRect) {
+            const bubble = document.createElement('div');
+            bubble.className = 'dance-pop';
+            bubble.innerText = role.emoji;
+            bubble.style.left = btnRect.left + btnRect.width/2 - 30 + 'px';
+            bubble.style.top = btnRect.top - 20 + 'px';
+            bubble.style.fontSize = '3rem';
+            document.body.appendChild(bubble);
+            setTimeout(() => bubble.remove(), 1000);
+        }
+    }
+
+    function playChallengeSound() {
+        if (!currentTarget) return;
+        speakSlow(currentTarget.soundPure, null);
+        speakerBtn.style.transform = "scale(0.96)";
+        setTimeout(() => speakerBtn.style.transform = "", 150);
+    }
+
+    // 获取随机反馈语
+    function getRandomFeedback(role) {
+        const msgs = role.correctMsgs;
+        return msgs[Math.floor(Math.random() * msgs.length)];
+    }
+
+    // 正确反馈：跳舞动画（丰富反馈语）
+    function playCorrectFeedback(role, btnRect) {
+        const feedbackMsg = getRandomFeedback(role);
+        speakFeedback(feedbackMsg, null);
+        const flash = document.createElement('div');
+        flash.className = 'flash-correct';
+        document.body.appendChild(flash);
+        setTimeout(() => flash.remove(), 400);
+        const danceDiv = document.createElement('div');
+        danceDiv.className = 'dance-pop';
+        danceDiv.innerText = role.emoji;
+        danceDiv.style.left = btnRect.left + btnRect.width/2 - 40 + 'px';
+        danceDiv.style.top = btnRect.top - 30 + 'px';
+        danceDiv.style.fontSize = '4rem';
+        document.body.appendChild(danceDiv);
+        setTimeout(() => danceDiv.remove(), 1000);
+        const targetEmoji = (role.type === 'g') ? leftEmojiSpan : rightEmojiSpan;
+        targetEmoji.classList.add('happy-dance');
+        setTimeout(() => targetEmoji.classList.remove('happy-dance'), 600);
+        const cheer = new SpeechSynthesisUtterance("叮叮叮");
+        cheer.rate = 1.5;
+        cheer.volume = 0.3;
+        window.speechSynthesis.speak(cheer);
+    }
+
+    // 错误反馈
+    function playWrongFeedback(wrongType, btnRect) {
+        const group = GROUPS[currentGroupIndex];
+        const correctRole = (wrongType === 'g') ? group.d : group.g;
+        const hintMsg = `你再仔细听一听，我唱歌的声音是${correctRole.soundPure.replace(/——/g, '～')}`;
+        speakFeedback(hintMsg, null);
+        const sadDiv = document.createElement('div');
+        sadDiv.className = 'sad-pop';
+        sadDiv.innerText = correctRole.emoji + ' 😢';
+        sadDiv.style.left = btnRect.left + btnRect.width/2 - 40 + 'px';
+        sadDiv.style.top = btnRect.top - 20 + 'px';
+        sadDiv.style.fontSize = '3.5rem';
+        document.body.appendChild(sadDiv);
+        setTimeout(() => sadDiv.remove(), 800);
+        const targetEmoji = (wrongType === 'g') ? leftEmojiSpan : rightEmojiSpan;
+        targetEmoji.classList.add('sad-shake');
+        setTimeout(() => targetEmoji.classList.remove('sad-shake'), 400);
+        const oops = new SpeechSynthesisUtterance("噢噢");
+        oops.rate = 1.2;
+        oops.volume = 0.3;
+        window.speechSynthesis.speak(oops);
+    }
+
+    // 三连对大型庆祝，结束后自动切换到下一组
+    function showSuperRewardAndNext() {
+        // 记录当前组已完成
+        completedGroups.add(currentGroupIndex);
+        
+        // 彩屑
+        const container = document.createElement('div');
+        container.className = 'confetti-effect';
+        document.body.appendChild(container);
+        const emojis = ['🎉','🌈','⭐️','🎈','🍰','🌸','✨','🦆','🐴','🐓','🍬','🎊','🌟','🎵'];
+        for (let i = 0; i < 150; i++) {
+            const e = document.createElement('div');
+            e.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+            e.style.position = 'absolute';
+            e.style.fontSize = (Math.random() * 38 + 22) + 'px';
+            e.style.left = Math.random() * 100 + '%';
+            e.style.top = '-50px';
+            e.style.animation = `fall ${Math.random() * 2 + 1.2}s linear forwards`;
+            container.appendChild(e);
+            setTimeout(() => e.remove(), 3000);
+        }
+        setTimeout(() => container.remove(), 3000);
+        // 按钮跳舞
+        leftBtn.classList.add('happy-dance');
+        rightBtn.classList.add('happy-dance');
+        setTimeout(() => {
+            leftBtn.classList.remove('happy-dance');
+            rightBtn.classList.remove('happy-dance');
+        }, 800);
+        // 底部跳舞方阵
+        const danceContainer = document.createElement('div');
+        danceContainer.className = 'party-dance';
+        const roles = ['🦆','🐴','🐓','🐦','🍰','🔪','📯','🚪'];
+        for (let i = 0; i < 10; i++) {
+            const dancer = document.createElement('span');
+            dancer.className = 'party-item';
+            dancer.innerText = roles[Math.floor(Math.random() * roles.length)];
+            dancer.style.animationDelay = (i * 0.05) + 's';
+            danceContainer.appendChild(dancer);
+        }
+        document.body.appendChild(danceContainer);
+        setTimeout(() => danceContainer.remove(), 2000);
+        // 庆祝语音
+        const cheerSpeech = new SpeechSynthesisUtterance("哇！三连对！大家开派对啦！超级小侦探！🎉🎉");
+        cheerSpeech.rate = 0.7;
+        window.speechSynthesis.speak(cheerSpeech);
+        
+        // 检查是否全部完成
+        if (completedGroups.size >= GROUPS.length) {
+            setTimeout(() => {
+                showVictoryCelebration();
+            }, 2500);
+        } else {
+            // 庆祝结束后自动切换到下一组（延迟3秒，让庆祝动画完整）
+            setTimeout(() => {
+                changeGroup(1);
+            }, 2500);
+        }
+    }
+
+    // 全部通关大庆祝
+    function showVictoryCelebration() {
+        const overlay = document.createElement('div');
+        overlay.className = 'victory-overlay';
+        overlay.id = 'victoryOverlay';
+        
+        // 添加飘浮的emoji
+        const floatEmojis = ['🦆','🐴','🍰','🔪','🐦','📯','🐓','🚪','🎉','🌈','⭐️','✨'];
+        for (let i = 0; i < 20; i++) {
+            const emoji = document.createElement('div');
+            emoji.className = 'victory-emoji';
+            emoji.innerText = floatEmojis[i % floatEmojis.length];
+            emoji.style.left = Math.random() * 90 + 5 + '%';
+            emoji.style.top = Math.random() * 80 + 10 + '%';
+            emoji.style.animationDelay = Math.random() * 2 + 's';
+            emoji.style.animationDuration = (2 + Math.random() * 2) + 's';
+            overlay.appendChild(emoji);
+        }
+        
+        const title = document.createElement('div');
+        title.className = 'victory-title';
+        title.innerText = '🎊 恭喜通关！🎊';
+        
+        const stars = document.createElement('div');
+        stars.className = 'victory-stars';
+        stars.innerText = '⭐⭐⭐⭐⭐';
+        
+        const text = document.createElement('div');
+        text.className = 'victory-text';
+        text.innerHTML = '你完成了所有的声音挑战！<br>你是真正的声音小达人！🏆';
+        
+        const btn = document.createElement('button');
+        btn.className = 'victory-btn';
+        btn.innerText = '🔄 再玩一次';
+        btn.onclick = () => {
+            overlay.remove();
+            completedGroups.clear();
+            currentGroupIndex = 0;
+            consecutiveCorrect = 0;
+            updateStars();
+            updateGroupUI();
+            const restartMsg = new SpeechSynthesisUtterance("太棒了！我们再来一次吧！");
+            restartMsg.rate = 0.7;
+            window.speechSynthesis.speak(restartMsg);
+        };
+        
+        overlay.appendChild(title);
+        overlay.appendChild(stars);
+        overlay.appendChild(text);
+        overlay.appendChild(btn);
+        document.body.appendChild(overlay);
+        
+        // 通关语音
+        const victorySpeech = new SpeechSynthesisUtterance("太厉害了！你完成了所有的声音挑战！你是真正的声音小达人！我们开个大派对庆祝吧！");
+        victorySpeech.rate = 0.7;
+        window.speechSynthesis.speak(victorySpeech);
+        
+        // 超级彩屑雨
+        const superConfetti = document.createElement('div');
+        superConfetti.className = 'confetti-effect';
+        document.body.appendChild(superConfetti);
+        const allEmojis = ['🦆','🐴','🍰','🔪','🐦','📯','🐓','🚪','🎉','🌈','⭐️','✨','🎈','🍬','🌸','🎵','🏆','🥇'];
+        for (let i = 0; i < 300; i++) {
+            const e = document.createElement('div');
+            e.innerText = allEmojis[Math.floor(Math.random() * allEmojis.length)];
+            e.style.position = 'absolute';
+            e.style.fontSize = (Math.random() * 50 + 30) + 'px';
+            e.style.left = Math.random() * 100 + '%';
+            e.style.top = '-80px';
+            e.style.animation = `fall ${Math.random() * 3 + 2}s linear forwards`;
+            e.style.animationDelay = Math.random() * 2 + 's';
+            superConfetti.appendChild(e);
+        }
+        setTimeout(() => superConfetti.remove(), 6000);
+    }
+
+    function updateStars() {
+        let stars = "";
+        for (let i = 0; i < 3; i++) stars += (i < consecutiveCorrect) ? "⭐️" : "☆";
+        starCountDisplay.innerText = stars;
+    }
+
+    function resetRound(keepConsecutive = false) {
+        if (!keepConsecutive) { consecutiveCorrect = 0; updateStars(); }
+        waitingForAnswer = true;
+        const group = GROUPS[currentGroupIndex];
+        if (group) {
+            const isG = Math.random() < 0.5;
+            currentTarget = isG ? { ...group.g, type: 'g' } : { ...group.d, type: 'd' };
+        }
+    }
+
+    function updateGroupUI() {
+        const group = GROUPS[currentGroupIndex];
+        if (!group) return;
+        leftEmojiSpan.innerText = group.g.emoji;
+        leftWordSpan.innerText = group.g.word;
+        rightEmojiSpan.innerText = group.d.emoji;
+        rightWordSpan.innerText = group.d.word;
+        leftEmojiPreview.innerText = group.g.emoji;
+        rightEmojiPreview.innerText = group.d.emoji;
+        teachLeftEmoji.innerText = group.g.emoji;
+        teachRightEmoji.innerText = group.d.emoji;
+        document.getElementById('groupNameDisplay').innerHTML = `<span>${group.g.emoji}</span> ${group.g.word} 🆚 ${group.d.word} <span>${group.d.emoji}</span>`;
+        consecutiveCorrect = 0;
+        updateStars();
+        waitingForAnswer = true;
+        const isG = Math.random() < 0.5;
+        currentTarget = isG ? { ...group.g, type: 'g' } : { ...group.d, type: 'd' };
+        if (userInteracted) setTimeout(() => playChallengeSound(), 400);
+    }
+
+    function changeGroup(delta) {
+        if (isSpeaking) { window.speechSynthesis.cancel(); isSpeaking = false; stopWave(); }
+        let newIdx = currentGroupIndex + delta;
+        if (newIdx < 0) newIdx = GROUPS.length - 1;
+        if (newIdx >= GROUPS.length) newIdx = 0;
+        currentGroupIndex = newIdx;
+        updateGroupUI();
+    }
+
+    async function handleChoice(selectedType, event) {
+        if (!waitingForAnswer || isSpeaking) return;
+        if (!currentTarget) return;
+        const isCorrect = (selectedType === currentTarget.type);
+        waitingForAnswer = false;
+        const btn = (selectedType === 'g') ? leftBtn : rightBtn;
+        const rect = btn.getBoundingClientRect();
+        if (isCorrect) {
+            btn.classList.add('bounce-animation');
+            setTimeout(() => btn.classList.remove('bounce-animation'), 280);
+            const group = GROUPS[currentGroupIndex];
+            const correctRole = (selectedType === 'g') ? group.g : group.d;
+            playCorrectFeedback(correctRole, rect);
+            consecutiveCorrect++;
+            updateStars();
+            if (consecutiveCorrect === 3) {
+                // 三连对：庆祝并自动换组
+                showSuperRewardAndNext();
+                consecutiveCorrect = 0;
+                updateStars();
+                // 注意：不在这里重置round，因为换组时会重置
+                // 但需要等待换组，避免重复操作
+                waitingForAnswer = false; // 等待换组完成后再允许点击
+                return;
+            } else {
+                resetRound(true);
+                setTimeout(() => {
+                    if (currentTarget && userInteracted) playChallengeSound();
+                    waitingForAnswer = true;
+                }, 900);
+            }
+        } else {
+            btn.classList.add('shake-animation');
+            setTimeout(() => btn.classList.remove('shake-animation'), 280);
+            playWrongFeedback(selectedType, rect);
+            setTimeout(() => {
+                if (currentTarget) playChallengeSound();
+                waitingForAnswer = true;
+            }, 1800);
+        }
+    }
+
+    function replayChallenge() {
+        if (currentTarget) {
+            if (isSpeaking) { window.speechSynthesis.cancel(); isSpeaking = false; stopWave(); }
+            playChallengeSound();
+        }
+    }
+
+    // 事件绑定
+    leftBtn.addEventListener('click', (e) => handleChoice('g', e));
+    rightBtn.addEventListener('click', (e) => handleChoice('d', e));
+    speakerBtn.addEventListener('click', () => {
+        if (!userInteracted) {
+            userInteracted = true;
+            if (currentTarget) playChallengeSound();
+        } else replayChallenge();
+    });
+    prevGroupBtn.addEventListener('click', () => changeGroup(-1));
+    nextGroupBtn.addEventListener('click', () => changeGroup(1));
+    teachLeftBtn.addEventListener('click', (e) => {
+        const group = GROUPS[currentGroupIndex];
+        if (group) playTeach(group.g, teachLeftBtn, teachLeftBtn.getBoundingClientRect());
+    });
+    teachRightBtn.addEventListener('click', (e) => {
+        const group = GROUPS[currentGroupIndex];
+        if (group) playTeach(group.d, teachRightBtn, teachRightBtn.getBoundingClientRect());
+    });
+
+    function unlockAndWelcome() {
+        if (!userInteracted) {
+            userInteracted = true;
+            const silent = new SpeechSynthesisUtterance(" ");
+            silent.volume = 0;
+            window.speechSynthesis.speak(silent);
+            setTimeout(() => {
+                if (currentTarget) playChallengeSound();
+            }, 200);
+            const welcome = new SpeechSynthesisUtterance("欢迎来到声音派对乐园！先点'听听我是谁'认识新朋友，然后慢慢听挑战声音选一选～");
+            welcome.rate = 0.7;
+            window.speechSynthesis.speak(welcome);
+        }
+    }
+    document.body.addEventListener('touchstart', unlockAndWelcome, { once: true });
+    document.body.addEventListener('click', unlockAndWelcome, { once: true });
+
+    function init() {
+        currentGroupIndex = 0;
+        completedGroups.clear();
+        updateGroupUI();
+    }
+    init();
+</script>
+</body>
+</html>  
